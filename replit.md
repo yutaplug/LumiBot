@@ -9,7 +9,8 @@ A simple Discord bot built with Node.js and discord.js
 
 ### Slash Commands
 - `/minky` - Get a random Minky cat image (displayed in pink embed)
-- `/addresponder` - Add a new autoresponder with trigger phrase, response message, and optional channel restriction
+- `/addresponder` - Add a new autoresponder with trigger phrase, response message, and optional channel restriction (Admin only)
+- `/deleteresponder` - Delete an autoresponder by trigger phrase (Admin only)
 - `/install` - Get Kettu installation instructions (ephemeral, interactive buttons for Android/iOS)
 
 ### Autoresponder
@@ -20,6 +21,7 @@ A simple Discord bot built with Node.js and discord.js
 - Requires Administrator permissions to add
 
 ## Recent Changes
+- November 29, 2025: Added /deleteresponder command (Admin only) to remove autoresponders
 - November 29, 2025: Removed all emojis from /install command for minimal design
 - November 29, 2025: Added GitHub release links to /install command (KettuManager, KettuXposed, KettuTweak, BTLoader)
 - November 29, 2025: Added /install command with interactive platform selection buttons (Android/iOS) and ephemeral responses
