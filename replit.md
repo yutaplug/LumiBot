@@ -18,7 +18,18 @@ A simple Discord bot built with Node.js and discord.js that manages custom prese
 - Error handling for connection issues
 - Express web server for keep-alive functionality (port 3000)
 
+### Slash Commands
+- `/minky` - Get a random Minky cat image (displayed in pink embed)
+- `/addresponder` - Add a new autoresponder with trigger phrase, response message, and optional channel restriction
+
+### Autoresponder
+- In-memory storage for trigger-response pairs
+- Supports optional channel-specific restrictions
+- Case-insensitive trigger matching
+
 ## Recent Changes
+- November 29, 2025: Added autoresponder feature with /addresponder command
+- November 29, 2025: Added /minky command with embed format
 - November 29, 2025: Initial project setup with discord.js
 
 ## User Preferences
