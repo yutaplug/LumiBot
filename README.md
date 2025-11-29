@@ -20,6 +20,4 @@ A simple Discord bot built with Node.js and discord.js
 - Case-insensitive trigger matching
 - Requires Administrator permissions to add
 
-## User Preferences
-- Node.js runtime
-- discord.js library for Discord API interaction
+
