@@ -183,12 +183,11 @@ module.exports = {
     const filteredPlugins = search ? filterPlugins(allPlugins, search) : allPlugins;
 
     if (filteredPlugins.length === 0) {
-      const errorMsg = 'No plugins found.';
-      if (send) {
-        return message.reply(errorMsg);
-      } else {
-        return message.author.send(errorMsg);
+      const reply = await message.reply('No plugins found.');
+      if (!send) {
+        setTimeout(() => reply.delete().catch(() => {}), 10000);
       }
+      return;
     }
 
     const page = 0;
@@ -211,10 +210,9 @@ module.exports = {
     const row = buildPaginationRow(page, totalPages, !!search);
     const replyOptions = { content, components: [row] };
     
-    if (send) {
-      await message.reply(replyOptions);
-    } else {
-      await message.author.send(replyOptions);
+    const reply = await message.reply(replyOptions);
+    if (!send) {
+      setTimeout(() => reply.delete().catch(() => {}), 10000);
     }
   },
 
