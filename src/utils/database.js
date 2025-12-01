@@ -34,9 +34,9 @@ async function initializeDatabase() {
     // Create bot_status table if it doesn't exist
     await pool.query(`
       CREATE TABLE IF NOT EXISTS bot_status (
-        status VARCHAR(50) NOT NULL,
-        activity VARCHAR(50) NOT NULL,
-        message TEXT NOT NULL
+        id SERIAL PRIMARY KEY,
+        status TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW()
       )
     `);
 
@@ -126,10 +126,11 @@ async function loadMinkyIntervalsFromDb() {
 
 async function saveBotStatus(status, activity, message) {
   try {
+    const statusString = `${activity}|${message}`;
     await pool.query('DELETE FROM bot_status');
     await pool.query(
-      'INSERT INTO bot_status (status, activity, message) VALUES ($1, $2, $3)',
-      [status, activity, message]
+      'INSERT INTO bot_status (status) VALUES ($1)',
+      [statusString]
     );
   } catch (err) {
     console.error('Error saving bot status:', err);
@@ -139,7 +140,14 @@ async function saveBotStatus(status, activity, message) {
 async function loadBotStatus() {
   try {
     const result = await pool.query('SELECT * FROM bot_status LIMIT 1');
-    return result.rows[0] || null;
+    if (!result.rows[0]) return null;
+    
+    const [activity, message] = result.rows[0].status.split('|');
+    return {
+      status: 'online',
+      activity,
+      message
+    };
   } catch (err) {
     console.error('Error loading bot status:', err);
     return null;
