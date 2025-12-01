@@ -9,6 +9,13 @@ const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
 
 function normalizePluginUrl(url) {
   try {
+    // GitHub /refs/heads/ → /raw/ conversion
+    const githubRefsMatch = url.match(/github\.com\/([^/]+)\/([^/]+)\/refs\/heads\/(.+)/);
+    if (githubRefsMatch) {
+      const [, user, repo, pathWithBranch] = githubRefsMatch;
+      return `https://github.com/${user}/${repo}/raw/${pathWithBranch}`;
+    }
+
     // jsDelivr GitHub: https://cdn.jsdelivr.net/gh/user/repo@version/path/file.zip
     const jsDelivrMatch = url.match(/cdn\.jsdelivr\.net\/gh\/([^@/]+)\/([^@]+)@([^/]+)\/(.*)/);
     if (jsDelivrMatch) {
