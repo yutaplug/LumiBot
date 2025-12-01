@@ -55,50 +55,40 @@ module.exports = {
     const platform = args[0]?.toLowerCase();
     const isAliucord = message.guild.id === '811255666990907402';
 
+    if (isAliucord) {
+      return message.reply({
+        embeds: [{
+          title: 'Aliucord Installation',
+          description: '**Download the Manager:**\n\n' +
+            '[Aliucord Manager](https://github.com/Aliucord/Manager/releases/latest)\n\n' +
+            '*Use the manager to install and manage Aliucord*',
+          color: 0x3DDC84
+        }]
+      });
+    }
+
     if (!platform) {
-      if (isAliucord) {
-        return message.reply({
-          embeds: [{
-            title: 'Aliucord Installation',
-            description: 'Use `l!install android` for installation instructions.',
-            color: 0x5865F2
-          }]
-        });
-      } else {
-        return message.reply({
-          embeds: [{
-            title: 'Kettu Installation',
-            description: 'Use `l!install android` or `l!install ios` for installation instructions.',
-            color: 0x5865F2
-          }]
-        });
-      }
+      return message.reply({
+        embeds: [{
+          title: 'Kettu Installation',
+          description: 'Use `l!install android` or `l!install ios` for installation instructions.',
+          color: 0x5865F2
+        }]
+      });
     }
 
     if (platform === 'android') {
-      if (isAliucord) {
-        await message.reply({
-          embeds: [{
-            title: 'Aliucord Installation',
-            description: '**Download the Manager:**\n\n' +
-              '[Aliucord Manager](https://github.com/Aliucord/Manager/releases/latest)\n\n' +
-              '*Use the manager to install and manage Aliucord*',
-            color: 0x3DDC84
-          }]
-        });
-      } else {
-        await message.reply({
-          embeds: [{
-            title: 'Android Installation',
-            description: '**Choose your method:**\n\n' +
-              '**Root with Xposed** → [KettuXposed](https://github.com/C0C0B01/KettuXposed/releases/latest)\n\n' +
-              '**Non-root** → [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)\n\n' +
-              '*If you don\'t know what root is, go with KettuManager*',
-            color: 0x3DDC84
-          }]
-        });
-      }
-    } else if (platform === 'ios' && !isAliucord) {
+      await message.reply({
+        embeds: [{
+          title: 'Android Installation',
+          description: '**Choose your method:**\n\n' +
+            '**Root with Xposed** → [KettuXposed](https://github.com/C0C0B01/KettuXposed/releases/latest)\n\n' +
+            '**Non-root** → [KettuManager](https://github.com/C0C0B01/KettuManager/releases/latest)\n\n' +
+            '*If you don\'t know what root is, go with KettuManager*',
+          color: 0x3DDC84
+        }]
+      });
+    } else if (platform === 'ios') {
       await message.reply({
         embeds: [{
           title: 'iOS Installation',
@@ -110,7 +100,7 @@ module.exports = {
         }]
       });
     } else {
-      await message.reply('❌ Invalid platform. Use `android`' + (isAliucord ? '' : ' or `ios`') + '.');
+      await message.reply('❌ Invalid platform. Use `android` or `ios`.');
     }
   }
 };
