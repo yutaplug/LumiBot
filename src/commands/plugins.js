@@ -245,27 +245,25 @@ module.exports = {
   async autocomplete(interaction) {
     try {
       const focusedValue = interaction.options.getFocused();
+      if (!focusedValue) {
+        await interaction.respond([]);
+        return;
+      }
+
       const allPlugins = await fetchPlugins();
+      const searchLower = focusedValue.toLowerCase();
       
-      // Get plugin names matching the focused value
-      let matches = allPlugins
-        .filter(plugin => plugin.name.toLowerCase().includes(focusedValue.toLowerCase()))
-        .slice(0, 25) // Discord limits to 25 choices
+      // Search by name, description, or authors - prioritize name matches
+      const nameMatches = allPlugins.filter(p => p.name.toLowerCase().includes(searchLower));
+      const descMatches = allPlugins.filter(p => !nameMatches.includes(p) && p.description.toLowerCase().includes(searchLower));
+      const authorMatches = allPlugins.filter(p => !nameMatches.includes(p) && !descMatches.includes(p) && p.authors.toLowerCase().includes(searchLower));
+      
+      const matches = [...nameMatches, ...descMatches, ...authorMatches]
+        .slice(0, 25)
         .map(plugin => ({
           name: plugin.name,
           value: plugin.name
         }));
-      
-      // If no matches, show plugins that start with the input
-      if (matches.length === 0) {
-        matches = allPlugins
-          .filter(plugin => plugin.name.toLowerCase().startsWith(focusedValue.toLowerCase()))
-          .slice(0, 25)
-          .map(plugin => ({
-            name: plugin.name,
-            value: plugin.name
-          }));
-      }
       
       await interaction.respond(matches);
     } catch (err) {
