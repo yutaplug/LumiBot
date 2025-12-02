@@ -220,8 +220,7 @@ module.exports = {
     const filteredPlugins = search ? filterPlugins(allPlugins, search) : allPlugins;
 
     if (filteredPlugins.length === 0) {
-      const reply = await message.reply('No plugins found.');
-      setTimeout(() => reply.delete().catch(() => {}), 30000);
+      await message.reply('No plugins found.');
       return;
     }
 
@@ -245,8 +244,7 @@ module.exports = {
     const row = buildPaginationRow(page, totalPages, !!search);
     const replyOptions = { content, components: [row] };
     
-    const reply = await message.reply(replyOptions);
-    setTimeout(() => reply.delete().catch(() => {}), 30000);
+    await message.reply(replyOptions);
   },
 
   async autocomplete(interaction) {
