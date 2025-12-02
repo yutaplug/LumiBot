@@ -13,45 +13,51 @@ const minkyIntervals = {};
 async function initializeDatabase() {
   try {
     // Create autoresponders table if it doesn't exist
-    await client.execute(`
-      CREATE TABLE IF NOT EXISTS autoresponders (
+    await client.execute({
+      sql: `CREATE TABLE IF NOT EXISTS autoresponders (
         guild_id TEXT NOT NULL,
         trigger_phrase TEXT NOT NULL,
         response TEXT NOT NULL,
         channel_id TEXT,
         PRIMARY KEY (guild_id, trigger_phrase, channel_id)
-      )
-    `);
+      )`,
+      args: []
+    });
 
     // Create minky_intervals table if it doesn't exist
-    await client.execute(`
-      CREATE TABLE IF NOT EXISTS minky_intervals (
+    await client.execute({
+      sql: `CREATE TABLE IF NOT EXISTS minky_intervals (
         guild_id TEXT NOT NULL,
         channel_id TEXT NOT NULL,
         interval_str TEXT NOT NULL,
         interval_ms INTEGER NOT NULL,
         PRIMARY KEY (guild_id, channel_id)
-      )
-    `);
+      )`,
+      args: []
+    });
 
     // Create bot_status table if it doesn't exist
-    await client.execute(`
-      CREATE TABLE IF NOT EXISTS bot_status (
+    await client.execute({
+      sql: `CREATE TABLE IF NOT EXISTS bot_status (
         status TEXT NOT NULL,
         activity TEXT NOT NULL,
         message TEXT NOT NULL
-      )
-    `);
+      )`,
+      args: []
+    });
 
     console.log('Database tables initialized successfully');
   } catch (err) {
-    console.error('Error initializing database:', err);
+    console.error('Error initializing database:', err.message || err);
   }
 }
 
 async function loadAutoresponders() {
   try {
-    const result = await client.execute('SELECT * FROM autoresponders');
+    const result = await client.execute({
+      sql: 'SELECT * FROM autoresponders',
+      args: []
+    });
     for (const row of result.rows) {
       if (!responders[row.guild_id]) responders[row.guild_id] = [];
       responders[row.guild_id].push({
@@ -62,7 +68,7 @@ async function loadAutoresponders() {
     }
     console.log(`Loaded ${result.rows.length} autoresponders from database`);
   } catch (err) {
-    console.error('Error loading autoresponders:', err);
+    console.error('Error loading autoresponders:', err.message || err);
   }
 }
 
@@ -119,10 +125,13 @@ async function deleteMinkyIntervalFromDb(guildId, channelId) {
 
 async function loadMinkyIntervalsFromDb() {
   try {
-    const result = await client.execute('SELECT * FROM minky_intervals');
+    const result = await client.execute({
+      sql: 'SELECT * FROM minky_intervals',
+      args: []
+    });
     return result.rows;
   } catch (err) {
-    console.error('Error loading minky intervals:', err);
+    console.error('Error loading minky intervals:', err.message || err);
     return [];
   }
 }
@@ -141,10 +150,13 @@ async function saveBotStatus(status, activity, message) {
 
 async function loadBotStatus() {
   try {
-    const result = await client.execute('SELECT * FROM bot_status LIMIT 1');
+    const result = await client.execute({
+      sql: 'SELECT * FROM bot_status LIMIT 1',
+      args: []
+    });
     return result.rows[0] || null;
   } catch (err) {
-    console.error('Error loading bot status:', err);
+    console.error('Error loading bot status:', err.message || err);
     return null;
   }
 }
