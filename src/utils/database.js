@@ -1,8 +1,9 @@
 const { createClient } = require('@libsql/client');
+const path = require('path');
 
+// Use local SQLite database
 const client = createClient({
-  url: process.env.TURSO_CONNECTION_URL,
-  authToken: process.env.TURSO_AUTH_TOKEN
+  url: `file:${path.join(process.cwd(), 'bot.db')}`
 });
 
 const responders = {};
