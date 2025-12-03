@@ -181,18 +181,7 @@ async function handleButton(interaction, action, page, hasSearch) {
     const row = buildPaginationRow(page, totalPages, !!search);
     await interaction.update({ content, components: [row] });
     
-    if (!isSupported) {
-      try {
-        const msg = await interaction.followUp({
-          content: 'Use command in <#847566769258233926> for hold-to-install feature',
-          flags: MessageFlags.Ephemeral
-        });
-        setTimeout(() => msg.delete().catch(() => {}), 10000);
-      } catch (err) {
-        console.error('Error sending info message:', err);
-      }
-    }
-  } catch (err) {
+    } catch (err) {
     console.error('Error in handleButton:', err);
   }
 }
@@ -251,11 +240,9 @@ module.exports = {
     
     if (!isSupported) {
       try {
-        const msg = await interaction.followUp({
-          content: 'Use command in <#847566769258233926> for hold-to-install feature',
-          flags: MessageFlags.Ephemeral
+        await interaction.followUp({
+          content: 'Use command in <#847566769258233926> for hold-to-install feature'
         });
-        setTimeout(() => msg.delete().catch(() => {}), 10000);
       } catch (err) {
         console.error('Error sending info message:', err);
       }
