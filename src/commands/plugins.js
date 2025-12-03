@@ -111,11 +111,15 @@ function filterPlugins(plugins, search) {
   );
 }
 
+function escapeMarkdown(text) {
+  return text.replace(/[*_~`[\]()]/g, '\\$&');
+}
+
 function formatPluginLine(plugin) {
   let text = `[${plugin.name}](${plugin.url})\n`;
-  text += plugin.description;
+  text += escapeMarkdown(plugin.description);
   if (plugin.authors) {
-    text += ` - ${plugin.authors}`;
+    text += ` - ${escapeMarkdown(plugin.authors)}`;
   }
   return text;
 }
