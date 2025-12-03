@@ -24,11 +24,25 @@ module.exports = {
       // Count plugins with descriptions
       const withDescriptions = allPlugins.filter(p => p.description && p.description !== 'No description').length;
       
-      // Find longest name
-      const longestName = allPlugins.reduce((max, p) => p.name.length > max.length ? p.name : max, '');
+      // Calculate average plugins per author
+      const avgPluginsPerAuthor = uniqueAuthors > 0 ? (totalPlugins / uniqueAuthors).toFixed(2) : 0;
       
-      // Sample some recent/random plugins
-      const samplePlugins = allPlugins.slice(0, 5).map(p => `• ${p.name}`).join('\n');
+      // Top authors - count plugins per author
+      const authorCounts = {};
+      allPlugins.forEach(p => {
+        if (p.authors && p.authors !== 'Unknown') {
+          authorCounts[p.authors] = (authorCounts[p.authors] || 0) + 1;
+        }
+      });
+      
+      const topAuthors = Object.entries(authorCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([author, count]) => `• ${author} - **${count}** plugins`)
+        .join('\n') || 'No data';
+      
+      // Latest plugins (first in manifest)
+      const latestPlugins = allPlugins.slice(0, 5).map(p => `• ${p.name}`).join('\n');
 
       const embed = new EmbedBuilder()
         .setColor(0x5865F2)
@@ -36,7 +50,7 @@ module.exports = {
         .addFields(
           {
             name: 'Total Plugins',
-            value: `**${totalPlugins}** plugins available`,
+            value: `**${totalPlugins}** plugins`,
             inline: true
           },
           {
@@ -45,13 +59,23 @@ module.exports = {
             inline: true
           },
           {
-            name: 'Plugins with Descriptions',
-            value: `**${withDescriptions}** (${Math.round((withDescriptions / totalPlugins) * 100)}%)`,
+            name: 'Avg Plugins per Author',
+            value: `**${avgPluginsPerAuthor}** plugins`,
             inline: true
           },
           {
-            name: 'Sample Plugins',
-            value: samplePlugins || 'No plugins found',
+            name: 'Plugins with Descriptions',
+            value: `**${withDescriptions}** (${Math.round((withDescriptions / totalPlugins) * 100)}%)`,
+            inline: false
+          },
+          {
+            name: '👑 Top Authors',
+            value: topAuthors,
+            inline: false
+          },
+          {
+            name: '✨ Latest Plugins',
+            value: latestPlugins,
             inline: false
           }
         )
@@ -80,8 +104,25 @@ module.exports = {
       // Count plugins with descriptions
       const withDescriptions = allPlugins.filter(p => p.description && p.description !== 'No description').length;
       
-      // Sample some plugins
-      const samplePlugins = allPlugins.slice(0, 5).map(p => `• ${p.name}`).join('\n');
+      // Calculate average plugins per author
+      const avgPluginsPerAuthor = uniqueAuthors > 0 ? (totalPlugins / uniqueAuthors).toFixed(2) : 0;
+      
+      // Top authors - count plugins per author
+      const authorCounts = {};
+      allPlugins.forEach(p => {
+        if (p.authors && p.authors !== 'Unknown') {
+          authorCounts[p.authors] = (authorCounts[p.authors] || 0) + 1;
+        }
+      });
+      
+      const topAuthors = Object.entries(authorCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([author, count]) => `• ${author} - **${count}** plugins`)
+        .join('\n') || 'No data';
+      
+      // Latest plugins (first in manifest)
+      const latestPlugins = allPlugins.slice(0, 5).map(p => `• ${p.name}`).join('\n');
 
       const embed = new EmbedBuilder()
         .setColor(0x5865F2)
@@ -89,7 +130,7 @@ module.exports = {
         .addFields(
           {
             name: 'Total Plugins',
-            value: `**${totalPlugins}** plugins available`,
+            value: `**${totalPlugins}** plugins`,
             inline: true
           },
           {
@@ -98,13 +139,23 @@ module.exports = {
             inline: true
           },
           {
-            name: 'Plugins with Descriptions',
-            value: `**${withDescriptions}** (${Math.round((withDescriptions / totalPlugins) * 100)}%)`,
+            name: 'Avg Plugins per Author',
+            value: `**${avgPluginsPerAuthor}** plugins`,
             inline: true
           },
           {
-            name: 'Sample Plugins',
-            value: samplePlugins || 'No plugins found',
+            name: 'Plugins with Descriptions',
+            value: `**${withDescriptions}** (${Math.round((withDescriptions / totalPlugins) * 100)}%)`,
+            inline: false
+          },
+          {
+            name: '👑 Top Authors',
+            value: topAuthors,
+            inline: false
+          },
+          {
+            name: '✨ Latest Plugins',
+            value: latestPlugins,
             inline: false
           }
         )
