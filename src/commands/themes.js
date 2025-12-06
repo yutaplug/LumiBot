@@ -1,9 +1,9 @@
-const { SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 const THEMES_URL = 'https://rautobot.github.io/themes-repo/data.json';
 const THEMES_CHANNEL_ID = '824357609778708580';
 const ALIUCORD_GUILD_ID = '811255666990907402';
-const THEMES_PER_PAGE = 1;
+const THEMES_PER_PAGE = 5;
 
 let cachedThemes = [];
 let cacheTimestamp = 0;
@@ -237,27 +237,20 @@ function escapeMarkdown(text) {
   return text.replace(/[*_~`[\]()]/g, '\\$&');
 }
 
-function buildThemeEmbed(theme) {
+function formatThemeLine(theme) {
   const previewUrl = getPreviewForTheme(theme);
   
-  const embed = new EmbedBuilder()
-    .setTitle(theme.name)
-    .setColor(0x00D166)
-    .setDescription(`**Version:** ${theme.version || 'N/A'}\n**Author:** ${escapeMarkdown(theme.author)}`);
-  
-  if (theme.url) {
-    embed.setURL(theme.url);
+  let text = `[${theme.name}](${theme.url})`;
+  if (theme.version) {
+    text += ` v${escapeMarkdown(theme.version)}`;
   }
+  text += ` by ${escapeMarkdown(theme.author)}`;
   
   if (previewUrl) {
-    embed.setImage(previewUrl);
+    text += ` • [Preview](${previewUrl})`;
   }
   
-  if (theme.repoUrl) {
-    embed.addFields({ name: 'Repository', value: `[View on GitHub](${theme.repoUrl})`, inline: true });
-  }
-  
-  return embed;
+  return text;
 }
 
 function encodeFilter(str) {
@@ -305,7 +298,7 @@ async function handleButton(interaction, action, page, encodedSearch, encodedAut
 
     const totalPages = Math.ceil(filteredThemes.length / THEMES_PER_PAGE);
     if (page < 0 || page >= totalPages) {
-      return await interaction.update({ content: 'Invalid page.', embeds: [], components: [] });
+      return await interaction.update({ content: 'Invalid page.', components: [] });
     }
 
     const start = page * THEMES_PER_PAGE;
@@ -317,17 +310,20 @@ async function handleButton(interaction, action, page, encodedSearch, encodedAut
       let filterText = [];
       if (search) filterText.push(`"${search}"`);
       if (author) filterText.push(`by ${author}`);
-      content = `**Themes ${filterText.join(' ')}** (${page + 1}/${totalPages} - ${filteredThemes.length} found)`;
+      content += `**Themes ${filterText.join(' ')}** (${filteredThemes.length} found)\n\n`;
     } else {
-      content = `**All Themes** (${page + 1}/${totalPages})`;
+      content += `**All Themes** (Page ${page + 1}/${totalPages})\n\n`;
     }
-    
-    content += '\n-# hold this message (not the links) to install';
 
-    const embeds = pageThemes.map(theme => buildThemeEmbed(theme));
+    pageThemes.forEach((theme, index) => {
+      content += formatThemeLine(theme);
+      if (index < pageThemes.length - 1) content += '\n\n';
+    });
+
+    content += '\n​\n-# hold this message (not the links) to install';
+
     const row = buildPaginationRow(page, totalPages, search, author);
-    
-    await interaction.update({ content, embeds, components: [row] });
+    await interaction.update({ content, components: [row] });
     
   } catch (err) {
     console.error('Error in handleButton:', err);
@@ -394,17 +390,20 @@ module.exports = {
       let filterText = [];
       if (search) filterText.push(`"${search}"`);
       if (author) filterText.push(`by ${author}`);
-      content = `**Themes ${filterText.join(' ')}** (${page + 1}/${totalPages} - ${filteredThemes.length} found)`;
+      content += `**Themes ${filterText.join(' ')}** (${filteredThemes.length} found)\n\n`;
     } else {
-      content = `**All Themes** (${page + 1}/${totalPages})`;
+      content += `**All Themes** (Page ${page + 1}/${totalPages})\n\n`;
     }
-    
-    content += '\n-# hold this message (not the links) to install';
 
-    const embeds = pageThemes.map(theme => buildThemeEmbed(theme));
+    pageThemes.forEach((theme, index) => {
+      content += formatThemeLine(theme);
+      if (index < pageThemes.length - 1) content += '\n\n';
+    });
+
+    content += '\n​\n-# hold this message (not the links) to install';
+
     const row = buildPaginationRow(page, totalPages, search, author);
-    
-    await interaction.editReply({ content, embeds, components: [row] });
+    await interaction.editReply({ content, components: [row] });
   },
 
   async executePrefix(message, args) {
@@ -451,17 +450,20 @@ module.exports = {
       let filterText = [];
       if (search) filterText.push(`"${search}"`);
       if (author) filterText.push(`by ${author}`);
-      content = `**Themes ${filterText.join(' ')}** (${page + 1}/${totalPages} - ${filteredThemes.length} found)`;
+      content += `**Themes ${filterText.join(' ')}** (${filteredThemes.length} found)\n\n`;
     } else {
-      content = `**All Themes** (${page + 1}/${totalPages})`;
+      content += `**All Themes** (Page ${page + 1}/${totalPages})\n\n`;
     }
-    
-    content += '\n-# hold this message (not the links) to install';
 
-    const embeds = pageThemes.map(theme => buildThemeEmbed(theme));
+    pageThemes.forEach((theme, index) => {
+      content += formatThemeLine(theme);
+      if (index < pageThemes.length - 1) content += '\n\n';
+    });
+
+    content += '\n​\n-# hold this message (not the links) to install';
+
     const row = buildPaginationRow(page, totalPages, search, author);
-    
-    await message.reply({ content, embeds, components: [row] });
+    await message.reply({ content, components: [row] });
   },
 
   async autocomplete(interaction) {
