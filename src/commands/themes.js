@@ -296,15 +296,20 @@ function formatThemeLine(theme) {
   const formattedUrl = formatUrlForMarkdown(theme.url);
   
   let text = `[${safeName}](${formattedUrl})`;
+  
+  // Use -# for smaller text on version, author, and preview
+  let smallText = '';
   if (theme.version) {
-    text += ` v${escapeMarkdown(theme.version)}`;
+    smallText += `v${escapeMarkdown(theme.version)} `;
   }
-  text += ` by ${escapeMarkdown(theme.author)}`;
+  smallText += `by ${escapeMarkdown(theme.author)}`;
   
   if (previewUrl) {
     const formattedPreview = formatUrlForMarkdown(previewUrl);
-    text += ` • [Preview](${formattedPreview})`;
+    smallText += ` • [Preview](${formattedPreview})`;
   }
+  
+  text += `\n-# ${smallText}`;
   
   return text;
 }
