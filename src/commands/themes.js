@@ -286,7 +286,13 @@ function buildPaginationRow(page, totalPages, search = null, author = null) {
     .setStyle(ButtonStyle.Primary)
     .setDisabled(page === totalPages - 1);
   
-  row.addComponents(prevBtn, nextBtn);
+  const previewBtn = new ButtonBuilder()
+    .setCustomId(`themes_preview_${page}_${encodedSearch}_${encodedAuthor}`)
+    .setLabel('Show Previews')
+    .setStyle(ButtonStyle.Secondary)
+    .setEmoji('🖼️');
+  
+  row.addComponents(prevBtn, nextBtn, previewBtn);
   return row;
 }
 
@@ -298,6 +304,40 @@ async function handleButton(interaction, action, page, encodedSearch, encodedAut
     const filteredThemes = filterThemes(allThemes, search, author);
 
     page = parseInt(page);
+    
+    if (action === 'preview') {
+      const totalPages = Math.ceil(filteredThemes.length / THEMES_PER_PAGE);
+      const start = page * THEMES_PER_PAGE;
+      const pageThemes = filteredThemes.slice(start, start + THEMES_PER_PAGE);
+      
+      const themesWithPreviews = pageThemes
+        .map(theme => ({
+          name: theme.name,
+          previewUrl: getPreviewForTheme(theme)
+        }))
+        .filter(t => t.previewUrl);
+      
+      if (themesWithPreviews.length === 0) {
+        await interaction.reply({
+          content: 'No previews available for themes on this page.',
+          flags: MessageFlags.Ephemeral
+        });
+        return;
+      }
+      
+      let previewContent = `**Theme Previews** (Page ${page + 1}/${totalPages})\n\n`;
+      themesWithPreviews.forEach((theme, index) => {
+        previewContent += `**${escapeMarkdown(theme.name)}**\n${theme.previewUrl}`;
+        if (index < themesWithPreviews.length - 1) previewContent += '\n\n';
+      });
+      
+      await interaction.reply({
+        content: previewContent,
+        flags: MessageFlags.Ephemeral
+      });
+      return;
+    }
+    
     if (action === 'next') page++;
     if (action === 'prev') page--;
 
