@@ -1,9 +1,12 @@
 const { SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { Catbox } = require('catbox.moe');
 
 const THEMES_URL = 'https://rautobot.github.io/themes-repo/data.json';
 const THEMES_CHANNEL_ID = '824357609778708580';
 const ALIUCORD_GUILD_ID = '811255666990907402';
 const THEMES_PER_PAGE = 5;
+
+const catbox = new Catbox();
 
 let cachedThemes = [];
 let cacheTimestamp = 0;
@@ -13,6 +16,16 @@ const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours
 const PREVIEW_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 let discordClient = null;
+
+async function uploadToCatbox(imageUrl) {
+  try {
+    const catboxUrl = await catbox.uploadURL({ url: imageUrl });
+    return catboxUrl;
+  } catch (err) {
+    console.error('Error uploading to catbox:', err.message || err);
+    return null;
+  }
+}
 
 function setClient(client) {
   discordClient = client;
@@ -77,6 +90,7 @@ async function fetchPreviewsFromChannel() {
 
     console.log('Fetching theme previews from #themes channel...');
     const newPreviewCache = new Map();
+    const uploadQueue = [];
     let lastMessageId = null;
     let totalFetched = 0;
     const maxMessages = 1000;
@@ -103,8 +117,8 @@ async function fetchPreviewsFromChannel() {
           
           for (const jsonUrl of urlMatches) {
             const normalizedUrl = normalizeUrlForMatching(jsonUrl);
-            const previewUrl = imageAttachments.first().url;
-            newPreviewCache.set(normalizedUrl, previewUrl);
+            const discordUrl = imageAttachments.first().url;
+            uploadQueue.push({ normalizedUrl, discordUrl });
           }
         }
       }
@@ -115,9 +129,18 @@ async function fetchPreviewsFromChannel() {
       if (messages.size < 100) break;
     }
 
+    console.log(`Found ${uploadQueue.length} previews, uploading to catbox...`);
+    
+    for (const { normalizedUrl, discordUrl } of uploadQueue) {
+      const catboxUrl = await uploadToCatbox(discordUrl);
+      if (catboxUrl) {
+        newPreviewCache.set(normalizedUrl, catboxUrl);
+      }
+    }
+
     previewCache = newPreviewCache;
     previewCacheTimestamp = now;
-    console.log(`Cached ${newPreviewCache.size} theme previews from ${totalFetched} messages`);
+    console.log(`Cached ${newPreviewCache.size} theme previews (uploaded to catbox) from ${totalFetched} messages`);
     return previewCache;
   } catch (err) {
     console.error('Error fetching theme previews:', err);
