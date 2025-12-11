@@ -291,13 +291,31 @@ function escapeMarkdownLink(text) {
   return text.replace(/\[/g, '\\[').replace(/\]/g, '\\]');
 }
 
+function formatUrlForMarkdown(url) {
+  // Encode spaces and parentheses for Discord markdown compatibility
+  try {
+    const parsed = new URL(url);
+    // Re-encode path segments to handle spaces and parentheses
+    const encodedPath = parsed.pathname
+      .split('/')
+      .map(segment => encodeURIComponent(decodeURIComponent(segment)))
+      .join('/');
+    parsed.pathname = encodedPath;
+    return parsed.toString();
+  } catch {
+    // Fallback: manually encode problematic characters
+    return url
+      .replace(/ /g, '%20')
+      .replace(/\(/g, '%28')
+      .replace(/\)/g, '%29');
+  }
+}
+
 function formatThemeLine(theme) {
   const previewUrl = getPreviewForTheme(theme);
   
   const safeName = escapeMarkdownLink(theme.name);
-  // Wrap URL in <> if it contains parentheses to prevent markdown parsing issues
-  const urlHasParens = theme.url.includes('(') || theme.url.includes(')');
-  const formattedUrl = urlHasParens ? `<${theme.url}>` : theme.url;
+  const formattedUrl = formatUrlForMarkdown(theme.url);
   
   let text = `[${safeName}](${formattedUrl})`;
   if (theme.version) {
@@ -306,8 +324,7 @@ function formatThemeLine(theme) {
   text += ` by ${escapeMarkdown(theme.author)}`;
   
   if (previewUrl) {
-    const previewHasParens = previewUrl.includes('(') || previewUrl.includes(')');
-    const formattedPreview = previewHasParens ? `<${previewUrl}>` : previewUrl;
+    const formattedPreview = formatUrlForMarkdown(previewUrl);
     text += ` • [Preview](${formattedPreview})`;
   }
   
