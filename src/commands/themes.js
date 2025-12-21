@@ -313,18 +313,7 @@ function formatThemeLine(theme) {
   return text;
 }
 
-function encodeFilter(str) {
-  if (!str) return '';
-  return Buffer.from(str).toString('base64').replace(/=/g, '');
-}
-
-function decodeFilter(str) {
-  if (!str) return null;
-  const padded = str + '='.repeat((4 - str.length % 4) % 4);
-  return Buffer.from(padded, 'base64').toString('utf8');
-}
-
-function buildPaginationRow(page, totalPages, search = null, author = null) {
+function buildThemeButtonRow(page, totalPages, search = null, author = null, themes = [], isKettu = false) {
   const row = new ActionRowBuilder();
   const encodedSearch = encodeFilter(search || '');
   const encodedAuthor = encodeFilter(author || '');
@@ -342,8 +331,48 @@ function buildPaginationRow(page, totalPages, search = null, author = null) {
     .setDisabled(page === totalPages - 1);
   
   row.addComponents(prevBtn, nextBtn);
-  return row;
+  
+  // For Kettu, add copy buttons for each theme
+  if (isKettu && themes.length > 0) {
+    const rows = [row];
+    
+    // Create rows with copy buttons (max 5 per row)
+    let currentRow = new ActionRowBuilder();
+    themes.forEach((theme, index) => {
+      const copyBtn = new ButtonBuilder()
+        .setCustomId(`themes_copy_${page}_${index}`)
+        .setLabel(`Copy ${theme.name.substring(0, 12)}${theme.name.length > 12 ? '...' : ''}`)
+        .setStyle(ButtonStyle.Secondary);
+      
+      if (currentRow.components.length < 5) {
+        currentRow.addComponents(copyBtn);
+      } else {
+        rows.push(currentRow);
+        currentRow = new ActionRowBuilder().addComponents(copyBtn);
+      }
+    });
+    
+    if (currentRow.components.length > 0) {
+      rows.push(currentRow);
+    }
+    
+    return rows;
+  }
+  
+  return [row];
 }
+
+function encodeFilter(str) {
+  if (!str) return '';
+  return Buffer.from(str).toString('base64').replace(/=/g, '');
+}
+
+function decodeFilter(str) {
+  if (!str) return null;
+  const padded = str + '='.repeat((4 - str.length % 4) % 4);
+  return Buffer.from(padded, 'base64').toString('utf8');
+}
+
 
 async function handleButton(interaction, action, page, encodedSearch, encodedAuthor) {
   try {
@@ -351,6 +380,8 @@ async function handleButton(interaction, action, page, encodedSearch, encodedAut
     const author = decodeFilter(encodedAuthor);
     const allThemes = await fetchThemes(interaction.guildId);
     const filteredThemes = filterThemes(allThemes, search, author);
+    const { SERVER_CONFIGS } = require('../utils/serverConfig');
+    const isKettu = interaction.guildId === SERVER_CONFIGS.KETTU.guildId;
 
     page = parseInt(page);
     
@@ -381,10 +412,12 @@ async function handleButton(interaction, action, page, encodedSearch, encodedAut
       if (index < pageThemes.length - 1) content += '\n\n───────────────\n\n';
     });
 
-    content += '\n​\n-# hold this message (not the links) to install';
+    if (!isKettu) {
+      content += '\n​\n-# hold this message (not the links) to install';
+    }
 
-    const row = buildPaginationRow(page, totalPages, search, author);
-    await interaction.update({ content, components: [row] });
+    const rows = buildThemeButtonRow(page, totalPages, search, author, pageThemes, isKettu);
+    await interaction.update({ content, components: rows });
     
   } catch (err) {
     console.error('Error in handleButton:', err);
@@ -431,6 +464,8 @@ module.exports = {
     const author = interaction.options.getString('author');
     const allThemes = await fetchThemes(interaction.guildId);
     const filteredThemes = filterThemes(allThemes, search, author);
+    const { SERVER_CONFIGS } = require('../utils/serverConfig');
+    const isKettu = interaction.guildId === SERVER_CONFIGS.KETTU.guildId;
 
     if (filteredThemes.length === 0) {
       return interaction.editReply('No themes found.');
@@ -461,10 +496,12 @@ module.exports = {
       if (index < pageThemes.length - 1) content += '\n\n───────────────\n\n';
     });
 
-    content += '\n​\n-# hold this message (not the links) to install';
+    if (!isKettu) {
+      content += '\n​\n-# hold this message (not the links) to install';
+    }
 
-    const row = buildPaginationRow(page, totalPages, search, author);
-    await interaction.editReply({ content, components: [row] });
+    const rows = buildThemeButtonRow(page, totalPages, search, author, pageThemes, isKettu);
+    await interaction.editReply({ content, components: rows });
   },
 
   async executePrefix(message, args) {
@@ -490,6 +527,8 @@ module.exports = {
 
     const allThemes = await fetchThemes(message.guildId);
     const filteredThemes = filterThemes(allThemes, search, author);
+    const { SERVER_CONFIGS } = require('../utils/serverConfig');
+    const isKettu = message.guildId === SERVER_CONFIGS.KETTU.guildId;
 
     if (filteredThemes.length === 0) {
       await message.reply('No themes found.');
@@ -521,10 +560,12 @@ module.exports = {
       if (index < pageThemes.length - 1) content += '\n\n───────────────\n\n';
     });
 
-    content += '\n​\n-# hold this message (not the links) to install';
+    if (!isKettu) {
+      content += '\n​\n-# hold this message (not the links) to install';
+    }
 
-    const row = buildPaginationRow(page, totalPages, search, author);
-    await message.reply({ content, components: [row] });
+    const rows = buildThemeButtonRow(page, totalPages, search, author, pageThemes, isKettu);
+    await message.reply({ content, components: rows });
   },
 
   async autocomplete(interaction) {

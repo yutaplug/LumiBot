@@ -129,7 +129,7 @@ function escapeMarkdown(text) {
 }
 
 function formatPluginLine(plugin) {
-  let text = `[${plugin.name}](${plugin.url})\n`;
+  let text = `[${plugin.name}](<${plugin.url}>)\n`;
   text += escapeMarkdown(plugin.description);
   if (plugin.authors) {
     text += ` - ${escapeMarkdown(plugin.authors)}`;
@@ -148,7 +148,7 @@ function decodeFilter(str) {
   return Buffer.from(padded, 'base64').toString('utf8');
 }
 
-function buildPaginationRow(page, totalPages, search = null, author = null) {
+function buildPaginationRow(page, totalPages, search = null, author = null, plugins = [], isKettu = false) {
   const row = new ActionRowBuilder();
   const encodedSearch = encodeFilter(search || '');
   const encodedAuthor = encodeFilter(author || '');
@@ -166,7 +166,37 @@ function buildPaginationRow(page, totalPages, search = null, author = null) {
     .setDisabled(page === totalPages - 1);
   
   row.addComponents(prevBtn, nextBtn);
-  return row;
+  
+  // For Kettu, add copy buttons for each plugin
+  if (isKettu && plugins.length > 0) {
+    const rows = [row];
+    
+    // Create rows with copy buttons (max 5 per row)
+    let currentRow = new ActionRowBuilder();
+    plugins.forEach((plugin, index) => {
+      if (!plugin.url.toLowerCase().endsWith('.zip')) {
+        const copyBtn = new ButtonBuilder()
+          .setCustomId(`plugins_copy_${page}_${index}`)
+          .setLabel(`Copy ${plugin.name.substring(0, 12)}${plugin.name.length > 12 ? '...' : ''}`)
+          .setStyle(ButtonStyle.Secondary);
+        
+        if (currentRow.components.length < 5) {
+          currentRow.addComponents(copyBtn);
+        } else {
+          rows.push(currentRow);
+          currentRow = new ActionRowBuilder().addComponents(copyBtn);
+        }
+      }
+    });
+    
+    if (currentRow.components.length > 0) {
+      rows.push(currentRow);
+    }
+    
+    return rows;
+  }
+  
+  return [row];
 }
 
 async function handleButton(interaction, action, page, encodedSearch, encodedAuthor) {
@@ -175,6 +205,8 @@ async function handleButton(interaction, action, page, encodedSearch, encodedAut
     const author = decodeFilter(encodedAuthor);
     const allPlugins = await fetchPlugins(interaction.guildId);
     const filteredPlugins = filterPlugins(allPlugins, search, author);
+    const { SERVER_CONFIGS } = require('../utils/serverConfig');
+    const isKettu = interaction.guildId === SERVER_CONFIGS.KETTU.guildId;
 
     page = parseInt(page);
     if (action === 'next') page++;
@@ -205,12 +237,12 @@ async function handleButton(interaction, action, page, encodedSearch, encodedAut
       if (index < pagePlugins.length - 1) content += '\n\n';
     });
 
-    if (isSupported) {
+    if (isSupported && !isKettu) {
       content += '\n​\n-# hold this message (not the links) to install';
     }
 
-    const row = buildPaginationRow(page, totalPages, search, author);
-    await interaction.update({ content, components: [row] });
+    const rows = buildPaginationRow(page, totalPages, search, author, pagePlugins, isKettu);
+    await interaction.update({ content, components: rows });
     
   } catch (err) {
     console.error('Error in handleButton:', err);
@@ -276,6 +308,9 @@ module.exports = {
       return interaction.editReply('No plugins found.');
     }
 
+    const { SERVER_CONFIGS } = require('../utils/serverConfig');
+    const isKettu = interaction.guildId === SERVER_CONFIGS.KETTU.guildId;
+    
     const page = 0;
     const totalPages = Math.ceil(filteredPlugins.length / PLUGINS_PER_PAGE);
     const start = page * PLUGINS_PER_PAGE;
@@ -297,10 +332,12 @@ module.exports = {
       if (index < pagePlugins.length - 1) content += '\n\n';
     });
 
-    content += '\n​\n-# hold this message (not the links) to install';
+    if (!isKettu) {
+      content += '\n​\n-# hold this message (not the links) to install';
+    }
 
-    const row = buildPaginationRow(page, totalPages, search, author);
-    await interaction.editReply({ content, components: [row] });
+    const rows = buildPaginationRow(page, totalPages, search, author, pagePlugins, isKettu);
+    await interaction.editReply({ content, components: rows });
   },
 
   async executePrefix(message, args) {
@@ -345,6 +382,9 @@ module.exports = {
       return;
     }
 
+    const { SERVER_CONFIGS } = require('../utils/serverConfig');
+    const isKettu = message.guildId === SERVER_CONFIGS.KETTU.guildId;
+    
     const page = 0;
     const totalPages = Math.ceil(filteredPlugins.length / PLUGINS_PER_PAGE);
     const start = page * PLUGINS_PER_PAGE;
@@ -366,10 +406,12 @@ module.exports = {
       if (index < pagePlugins.length - 1) content += '\n\n';
     });
 
-    content += '\n​\n-# hold this message (not the links) to install';
+    if (!isKettu) {
+      content += '\n​\n-# hold this message (not the links) to install';
+    }
 
-    const row = buildPaginationRow(page, totalPages, search, author);
-    await message.reply({ content, components: [row] });
+    const rows = buildPaginationRow(page, totalPages, search, author, pagePlugins, isKettu);
+    await message.reply({ content, components: rows });
   },
 
   async autocomplete(interaction) {
