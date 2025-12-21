@@ -453,6 +453,31 @@ module.exports = {
     }
   },
 
+  async handleCopyButton(interaction, page, index) {
+    try {
+      const allPlugins = await fetchPlugins(interaction.guildId);
+      
+      if (index < 0 || index >= allPlugins.length) {
+        return await interaction.reply({
+          content: '❌ Plugin not found.',
+          flags: MessageFlags.Ephemeral
+        });
+      }
+      
+      const plugin = allPlugins[index];
+      await interaction.reply({
+        content: `\`\`\`\n${plugin.url}\n\`\`\``,
+        flags: MessageFlags.Ephemeral
+      });
+    } catch (error) {
+      console.error('Error in handleCopyButton:', error);
+      await interaction.reply({
+        content: '❌ Error copying link.',
+        flags: MessageFlags.Ephemeral
+      });
+    }
+  },
+
   handleButton,
   fetchPlugins,
   filterPlugins,

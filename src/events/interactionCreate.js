@@ -50,6 +50,30 @@ module.exports = {
 };
 
 async function handleButton(interaction) {
+  if (interaction.customId.startsWith('plugins_copy_')) {
+    const pluginsCommand = interaction.client.commands.get('plugins');
+    if (pluginsCommand && pluginsCommand.handleCopyButton) {
+      const parts = interaction.customId.split('_');
+      const page = parseInt(parts[2]) || 0;
+      const index = parseInt(parts[3]) || 0;
+      
+      try {
+        await pluginsCommand.handleCopyButton(interaction, page, index);
+      } catch (error) {
+        console.error('Error handling plugins copy button:', error);
+        try {
+          await interaction.reply({
+            content: '❌ Error copying link. Please try again.',
+            flags: MessageFlags.Ephemeral
+          });
+        } catch (updateError) {
+          console.error('Could not reply to button interaction:', updateError);
+        }
+      }
+    }
+    return;
+  }
+
   if (interaction.customId.startsWith('plugins_')) {
     const pluginsCommand = interaction.client.commands.get('plugins');
     if (pluginsCommand && pluginsCommand.handleButton) {
@@ -71,6 +95,30 @@ async function handleButton(interaction) {
         } catch (updateError) {
           // Interaction already acknowledged
           console.error('Could not update button interaction:', updateError);
+        }
+      }
+    }
+    return;
+  }
+
+  if (interaction.customId.startsWith('themes_copy_')) {
+    const themesCommand = interaction.client.commands.get('themes');
+    if (themesCommand && themesCommand.handleCopyButton) {
+      const parts = interaction.customId.split('_');
+      const page = parseInt(parts[2]) || 0;
+      const index = parseInt(parts[3]) || 0;
+      
+      try {
+        await themesCommand.handleCopyButton(interaction, page, index);
+      } catch (error) {
+        console.error('Error handling themes copy button:', error);
+        try {
+          await interaction.reply({
+            content: '❌ Error copying link. Please try again.',
+            flags: MessageFlags.Ephemeral
+          });
+        } catch (updateError) {
+          console.error('Could not reply to button interaction:', updateError);
         }
       }
     }

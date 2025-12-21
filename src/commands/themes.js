@@ -607,6 +607,31 @@ module.exports = {
     }
   },
 
+  async handleCopyButton(interaction, page, index) {
+    try {
+      const allThemes = await fetchThemes(interaction.guildId);
+      
+      if (index < 0 || index >= allThemes.length) {
+        return await interaction.reply({
+          content: '❌ Theme not found.',
+          flags: MessageFlags.Ephemeral
+        });
+      }
+      
+      const theme = allThemes[index];
+      await interaction.reply({
+        content: `\`\`\`\n${theme.url}\n\`\`\``,
+        flags: MessageFlags.Ephemeral
+      });
+    } catch (error) {
+      console.error('Error in handleCopyButton:', error);
+      await interaction.reply({
+        content: '❌ Error copying link.',
+        flags: MessageFlags.Ephemeral
+      });
+    }
+  },
+
   handleButton,
   fetchThemes,
   filterThemes,
