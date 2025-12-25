@@ -50,10 +50,10 @@ async function setSticky(guildId, channel, content, cooldownSeconds = 120, inclu
       lastSentMs: 0
     };
 
-    return true;
+    return { ok: true };
   } catch (err) {
-    console.error('Error setting sticky:', err.message || err);
-    return false;
+    const message = err?.message ? String(err.message) : String(err);
+    return { ok: false, error: `DB_WRITE_FAILED: ${message}` };
   }
 }
 

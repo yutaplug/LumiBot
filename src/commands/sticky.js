@@ -56,8 +56,8 @@ module.exports = {
       const message = interaction.options.getString('message');
       const cooldown = interaction.options.getInteger('cooldown') ?? 120;
       const warning = interaction.options.getBoolean('warning');
-      const ok = await setSticky(guildId, channel, message, cooldown, warning == null ? true : warning);
-      if (!ok) return interaction.reply({ content: '❌ Failed to set stickied message.', flags: MessageFlags.Ephemeral });
+      const res = await setSticky(guildId, channel, message, cooldown, warning == null ? true : warning);
+      if (!res?.ok) return interaction.reply({ content: `❌ Failed to set stickied message: ${res?.error || 'unknown error'}`, flags: MessageFlags.Ephemeral });
       return interaction.reply({ content: `✅ Stickied message set in ${channel} (cooldown ${cooldown}s)`, flags: MessageFlags.Ephemeral });
     }
 
@@ -126,8 +126,8 @@ module.exports = {
         }
       }
 
-      const ok = await setSticky(message.guild.id, channel, stickyText, cooldown, warning);
-      if (!ok) return message.reply('❌ Failed to set stickied message.');
+      const res = await setSticky(message.guild.id, channel, stickyText, cooldown, warning);
+      if (!res?.ok) return message.reply(`❌ Failed to set stickied message: ${res?.error || 'unknown error'}`);
       return message.reply(`✅ Stickied message set in ${channel} (cooldown ${cooldown}s)`);
     }
 
