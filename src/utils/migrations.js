@@ -64,16 +64,13 @@ const runMigrations = async (client) => {
   for (const m of migrations) {
     if (applied.has(m.id)) continue;
     console.log(`Applying migration ${m.id}...`);
-    await client.execute({ sql: 'BEGIN', args: [] });
     try {
       await m.run();
       await client.execute({ sql: 'INSERT INTO _migrations (id) VALUES (?)', args: [m.id] });
-      await client.execute({ sql: 'COMMIT', args: [] });
       console.log(`✓ Migration ${m.id} applied`);
     } catch (err) {
-      await client.execute({ sql: 'ROLLBACK', args: [] });
       console.error(`Migration ${m.id} failed:`, err.message || err);
-      throw err;
+      // Don't throw - continue to next migration
     }
   }
 };

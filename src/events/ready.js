@@ -13,7 +13,7 @@ const activityTypes = {
 };
 
 module.exports = {
-  name: 'clientReady',
+  name: 'ready',
   once: true,
   async execute(client) {
     console.log(`Logged in as ${client.user.tag}`);

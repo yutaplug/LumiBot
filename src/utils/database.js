@@ -69,8 +69,25 @@ async function initializeDatabase() {
       args: []
     });
     console.log('✓ Plugin reviews table created');
+
+    // Create sticky_messages table
+    console.log('Creating sticky_messages table...');
+    await client.execute({
+      sql: `CREATE TABLE IF NOT EXISTS sticky_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id TEXT NOT NULL,
+        channel_id TEXT NOT NULL,
+        content TEXT NOT NULL,
+        last_message_id TEXT,
+        cooldown_ms INTEGER NOT NULL DEFAULT 120000,
+        include_warning INTEGER NOT NULL DEFAULT 1,
+        UNIQUE(guild_id, channel_id)
+      )`,
+      args: []
+    });
+    console.log('✓ Sticky messages table created');
     
-    // Run schema migrations (sticky messages and future changes)
+    // Run schema migrations (future changes)
     await runMigrations(client);
 
     console.log('✓ Database tables initialized successfully');
@@ -82,7 +99,7 @@ async function initializeDatabase() {
 async function loadStickyMessages() {
   try {
     const result = await client.execute({
-      sql: 'SELECT guild_id, channel_id, content, last_message_id, cooldown_ms, include_warning FROM sticky_messages',
+      sql: 'SELECT guild_id, channel_id, message_content as content, last_message_id, cooldown_ms, include_warning FROM sticky_messages',
       args: []
     });
     return result.rows;
@@ -302,6 +319,32 @@ async function getTopReviewedPlugins(limit = 5) {
   } catch (err) {
     console.error('Error getting top reviewed plugins:', err.message || err);
     return [];
+  }
+}
+
+async function saveStickyMessage(guildId, channelId, content, cooldownMs = 0, includeWarning = false) {
+  try {
+    await client.execute({
+      sql: 'INSERT OR REPLACE INTO sticky_messages (guild_id, channel_id, message_content, cooldown_ms, include_warning) VALUES (?, ?, ?, ?, ?)',
+      args: [guildId, channelId, content, cooldownMs, includeWarning ? 1 : 0]
+    });
+    return true;
+  } catch (err) {
+    console.error('Error saving sticky message:', err);
+    return false;
+  }
+}
+
+async function deleteStickyMessage(guildId, channelId) {
+  try {
+    await client.execute({
+      sql: 'DELETE FROM sticky_messages WHERE guild_id = ? AND channel_id = ?',
+      args: [guildId, channelId]
+    });
+    return true;
+  } catch (err) {
+    console.error('Error deleting sticky message:', err);
+    return false;
   }
 }
 

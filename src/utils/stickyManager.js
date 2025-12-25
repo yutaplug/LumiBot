@@ -1,4 +1,4 @@
-const { client, saveStickyMessage, deleteStickyMessage, loadStickyMessages } = require('./database');
+const { client: dbClient, saveStickyMessage, deleteStickyMessage, loadStickyMessages } = require('./database');
 
 const stickies = {};
 
@@ -108,19 +108,19 @@ async function repostSticky(channel) {
     }
   }
 
-  const content = cfg.includeWarning ? `**__Stickied message:__**\n${cfg.content}` : cfg.content;
+  const content = cfg.includeWarning ? `${cfg.content}\n\n*This is an automated stickied message.*` : cfg.content;
 
   const sent = await channel.send({ content, allowedMentions: { parse: [] } });
 
   cfg.lastMessageId = sent.id;
   try {
     if (cfg.guildId) {
-      await client.execute({
+      await dbClient.execute({
         sql: 'UPDATE sticky_messages SET last_message_id = ? WHERE guild_id = ? AND channel_id = ?',
         args: [sent.id, cfg.guildId, channelId]
       });
     } else {
-      await client.execute({
+      await dbClient.execute({
         sql: 'UPDATE sticky_messages SET last_message_id = ? WHERE channel_id = ?',
         args: [sent.id, channelId]
       });

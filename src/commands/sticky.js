@@ -35,36 +35,44 @@ module.exports = {
             .setRequired(false))),
 
   async execute(interaction) {
-    const perms = interaction.member.permissions;
-    const hasModPerms = perms.has(PermissionsBitField.Flags.ManageMessages)
-      || perms.has(PermissionsBitField.Flags.ManageGuild)
-      || perms.has(PermissionsBitField.Flags.BanMembers)
-      || perms.has(PermissionsBitField.Flags.KickMembers);
+    try {
+      const perms = interaction.member.permissions;
+      const hasModPerms = perms.has(PermissionsBitField.Flags.ManageMessages)
+        || perms.has(PermissionsBitField.Flags.ManageGuild)
+        || perms.has(PermissionsBitField.Flags.BanMembers)
+        || perms.has(PermissionsBitField.Flags.KickMembers);
 
-    if (!hasModPerms) {
-      return interaction.reply({
-        content: '❌ You need moderator permissions (Manage Messages) to use this command.',
-        flags: MessageFlags.Ephemeral
-      });
-    }
+      if (!hasModPerms) {
+        return interaction.reply({
+          content: '❌ You need moderator permissions (Manage Messages) to use this command.',
+          flags: MessageFlags.Ephemeral
+        });
+      }
 
-    const sub = interaction.options.getSubcommand();
-    const channel = interaction.options.getChannel('channel') || interaction.channel;
-    const guildId = interaction.guildId;
+      const sub = interaction.options.getSubcommand();
+      const channel = interaction.options.getChannel('channel') || interaction.channel;
+      const guildId = interaction.guildId;
 
-    if (sub === 'add') {
-      const message = interaction.options.getString('message');
-      const cooldown = interaction.options.getInteger('cooldown') ?? 120;
-      const warning = interaction.options.getBoolean('warning');
-      const res = await setSticky(guildId, channel, message, cooldown, warning == null ? true : warning);
-      if (!res?.ok) return interaction.reply({ content: `❌ Failed to set stickied message: ${res?.error || 'unknown error'}`, flags: MessageFlags.Ephemeral });
-      return interaction.reply({ content: `✅ Stickied message set in ${channel} (cooldown ${cooldown}s)`, flags: MessageFlags.Ephemeral });
-    }
+      if (sub === 'add') {
+        const message = interaction.options.getString('message');
+        const cooldown = interaction.options.getInteger('cooldown') ?? 120;
+        const warning = interaction.options.getBoolean('warning');
+        const res = await setSticky(guildId, channel, message, cooldown, warning == null ? true : warning);
+        if (!res?.ok) return interaction.reply({ content: `❌ Failed to set stickied message: ${res?.error || 'unknown error'}`, flags: MessageFlags.Ephemeral });
+        return interaction.reply({ content: `✅ Stickied message set in ${channel} (cooldown ${cooldown}s)`, flags: MessageFlags.Ephemeral });
+      }
 
-    if (sub === 'remove') {
-      const ok = await disableSticky(guildId, channel);
-      if (!ok) return interaction.reply({ content: '❌ Failed to remove stickied message.', flags: MessageFlags.Ephemeral });
-      return interaction.reply({ content: `✅ Removed stickied message from ${channel}`, flags: MessageFlags.Ephemeral });
+      if (sub === 'remove') {
+        const ok = await disableSticky(guildId, channel);
+        if (!ok) return interaction.reply({ content: '❌ Failed to remove stickied message.', flags: MessageFlags.Ephemeral });
+        return interaction.reply({ content: `✅ Removed stickied message from ${channel}`, flags: MessageFlags.Ephemeral });
+      }
+    } catch (err) {
+      console.error('Error in sticky command:', err);
+      return interaction.reply({ 
+        content: `❌ An error occurred: ${err.message || 'unknown error'}`, 
+        flags: MessageFlags.Ephemeral 
+      }).catch(() => {});
     }
   },
 
