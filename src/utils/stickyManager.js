@@ -31,7 +31,6 @@ async function setSticky(guildId, channel, content, cooldownSeconds = 120, inclu
   try {
     const cooldownMs = Math.max(0, Math.floor(Number(cooldownSeconds) || 0) * 1000);
 
-    // Upsert while preserving last_message_id
     await client.execute({
       sql: `INSERT INTO sticky_messages (guild_id, channel_id, content, last_message_id, cooldown_ms, include_warning)
             VALUES (?, ?, ?, COALESCE((SELECT last_message_id FROM sticky_messages WHERE guild_id = ? AND channel_id = ?), NULL), ?, ?)
@@ -42,7 +41,6 @@ async function setSticky(guildId, channel, content, cooldownSeconds = 120, inclu
       args: [guildId, channelId, content, guildId, channelId, cooldownMs, includeWarning ? 1 : 0]
     });
 
-    // Update cache (do not immediately repost; match Go behavior)
     stickies[channelId] = {
       guildId,
       content,
@@ -122,7 +120,6 @@ async function repostSticky(channel) {
 
   const sent = await channel.send({ content, allowedMentions: { parse: [] } });
 
-  // Update cache and DB with new last_message_id
   cfg.lastMessageId = sent.id;
   try {
     if (cfg.guildId) {
