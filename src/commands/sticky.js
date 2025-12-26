@@ -20,7 +20,7 @@ module.exports = {
             .setRequired(false))
         .addBooleanOption(opt =>
           opt.setName('warning')
-            .setDescription("Include '**__Stickied Message:__**' header (default on)")
+            .setDescription("Include 'This is an automated stickied message.' footer (default on)")
             .setRequired(false))
         .addChannelOption(opt =>
           opt.setName('channel')
