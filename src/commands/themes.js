@@ -482,7 +482,7 @@ module.exports = {
     const isSupported = isChannelSupported(interaction.channelId);
     if (!isSupported) {
       return interaction.reply({
-        content: 'Use command in <#847566769258233926> for hold-to-install feature',
+        content: 'Please use <#811263527239024640> to use this command.',
         flags: MessageFlags.Ephemeral
       });
     }
@@ -548,7 +548,7 @@ module.exports = {
     const isSupported = isChannelSupported(message.channelId);
     if (!isSupported) {
       try {
-        const msg = await message.reply('Use command in <#847566769258233926> for hold-to-install feature');
+        const msg = await message.reply('Please use <#811263527239024640> to use this command.');
         setTimeout(() => msg.delete().catch(() => {}), 30000);
       } catch (err) {
         console.error('Error sending info message:', err);

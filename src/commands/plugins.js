@@ -305,7 +305,7 @@ module.exports = {
       await interaction.deferReply();
       try {
         const msg = await interaction.followUp({
-          content: 'Use command in <#847566769258233926> for hold-to-install feature'
+          content: 'Please use <#811263527239024640> to use this command.'
         });
         setTimeout(() => msg.delete().catch(() => {}), 30000);
       } catch (err) {
@@ -374,7 +374,7 @@ module.exports = {
     if (!isSupported) {
       try {
         const msg = await message.reply({
-          content: 'Use command in <#847566769258233926> for hold-to-install feature'
+          content: 'Please use <#811263527239024640> to use this command.'
         });
         setTimeout(() => msg.delete().catch(() => {}), 30000);
       } catch (err) {
