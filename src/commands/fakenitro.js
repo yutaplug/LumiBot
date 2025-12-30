@@ -3,7 +3,8 @@ const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const SUPPORTED_CHANNELS = [
   '811261298997460992',
   '847566769258233926',
-  '811262084968742932'
+  '811262084968742932',
+  '811263527239024640'
 ];
 
 function isChannelSupported(channelId) {
@@ -12,7 +13,7 @@ function isChannelSupported(channelId) {
 
 const FAKENITRO_MESSAGE = `**"FAKENITRO" PLUGINS**
 Hold this message to install them.
-**Note:** Reading [this guide](<https://yutaplug.github.io/Aliucord/userpfpbg>) is necessary if you want to use UserPFP/BG.
+**Note:** Reading [this guide](<https://aliucord.vercel.app/userpfpbg>) is necessary if you want to use UserPFP/BG.
 _ _
 - NitroSpoof (fork) for emojis.
 - BetterFakeStickers for stickers.
