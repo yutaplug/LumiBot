@@ -37,7 +37,6 @@ function isChannelSupported(channelId) {
   return SUPPORTED_CHANNELS.includes(channelId);
 }
 
-// Force cache refresh on startup
 function clearPluginCache() {
   cachedPlugins = [];
   cacheTimestamp = 0;
@@ -93,7 +92,10 @@ async function fetchPlugins(guildId) {
     if (Array.isArray(data)) {
       for (const plugin of data) {
         if (plugin.name && plugin.url) {
-          const authors = Array.isArray(plugin.authors) ? plugin.authors.join(', ') : 'Unknown';
+          let authors = 'Unknown';
+          if (Array.isArray(plugin.authors)) {
+            authors = plugin.authors.map(a => typeof a === 'object' ? a.name : a).join(', ');
+          }
           const normalizedUrl = normalizePluginUrl(plugin.url);
           plugins.push({
             name: plugin.name,
@@ -185,12 +187,10 @@ function buildPaginationRow(page, totalPages, search = null, author = null, plug
     .setDisabled(page === totalPages - 1);
   
   row.addComponents(prevBtn, nextBtn);
-  
-  // For Kettu, add copy buttons for each plugin
+
   if (isKettu && plugins.length > 0) {
     const rows = [row];
     
-    // Create rows with copy buttons (max 5 per row)
     let currentRow = new ActionRowBuilder();
     plugins.forEach((plugin, index) => {
       if (!plugin.url.toLowerCase().endsWith('.zip')) {
@@ -300,7 +300,6 @@ module.exports = {
   async execute(interaction) {
     const isSupported = isChannelSupported(interaction.channelId);
 
-    // Only allow command in supported channels
     if (!isSupported) {
       await interaction.deferReply();
       try {
@@ -314,7 +313,6 @@ module.exports = {
       return;
     }
 
-    // Role restriction check for support channels
     if (!hasPermission(interaction.member, interaction.channelId)) {
       return interaction.reply({
         content: '❌ You do not have permission to use this command in this channel. Please use <#811263527239024640> instead.',
@@ -370,7 +368,6 @@ module.exports = {
   async executePrefix(message, args) {
     const isSupported = isChannelSupported(message.channelId);
 
-    // Only allow command in supported channels
     if (!isSupported) {
       try {
         const msg = await message.reply({
@@ -382,8 +379,7 @@ module.exports = {
       }
       return;
     }
-
-    // Role restriction check for support channels
+s
     if (!hasPermission(message.member, message.channelId)) {
       try {
         const msg = await message.reply('❌ You do not have permission to use this command in this channel. Please use <#811263527239024640> instead.');
