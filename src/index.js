@@ -6,6 +6,7 @@ const { loadEvents } = require('./handlers/eventLoader');
 const { initializeDatabase } = require('./utils/database');
 const { initializeStickyManager } = require('./utils/stickyManager');
 const huskboard = require('./modules/huskboard');
+const dehoist = require('./modules/dehoist');
 
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
 
@@ -28,6 +29,7 @@ const client = new Client({
   await initializeDatabase();
   await initializeStickyManager();
   huskboard.init(client);
+  dehoist.execute(client);
   loadCommands(client);
   loadEvents(client);
   client.login(TOKEN);
