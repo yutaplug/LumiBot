@@ -18,39 +18,27 @@ const data = new SlashCommandBuilder()
 // In-memory conversation history for users
 const helperHistory = new Map();
 
-// Channel ID for helper AI (set via command or env)
-let HELPER_CHANNEL_ID = process.env.AI_HELPER_CHANNEL_ID || null;
+// In-memory storage for helper channels per guild (Set of channel IDs per guild)
+const HELPER_CHANNELS = new Map();
 
 // Helper AI system prompt (strict, only answers if confident)
 const HELPER_PROMPT = `You are a Discord helper bot for a discord client mod called Aliucord. You are ONLY allowed to answer questions if the answer can be found in the following FAQ or common issues list. If you do not know the answer exactly from the FAQ, reply with "I do not know."
 
 ---
-"Nobody can hear me in VC/VC is not working"
-VC is not really possible on Aliucord/old Discord versions anymore due to the new end to end encryption. Wait for the devs to backport it!
-
-"Failed to initialize/I don't have PluginDownloader/I can't install plugins/Emojis are blank"
-You might need to create an "Aliucord" folder in your internal storage (https://raw.githubusercontent.com/yutaplug/Aliucord/main/stuff/Aliucord.jpg)
-
-"I can't open pfps with ViewProfileImages plugin"
-Disable "Decorations" plugin (make sure to enable showing built-in plugins).
-
-"My Aliucord is crashing"
-Post a crashlog .txt file that can be found in your "Aliucord/crashlogs" folder.
-
-"Plugin not working"
-Have you restarted the app? if yes, stand by until a supporter can assist you.
-
-"UserPFP/UserBG not working"
-Make sure you have read the guide: <https://yutaplug.github.io/Aliucord/#userpfp-and-bg>
-
-"Emojis don't save in status"
-Known issue, no fix.
-
-"Aliucord thinks my text bar is a password bar"
-Device or keyboard issue. no fix on our end.
+- nobody can hear me in vc: vc is not really possible on aliucord/old discord versions anymore
+- failed to initialise: you might need to create an aliucord folder in your internal storage
+- blank emojis: you might need to create an aliucord folder in your internal storage
+- no plugin downloader: you might need to create an aliucord folder in your internal storage
+- can't open pfps with viewprofileimages plugin: disable decorations (make sure to enable showing built-in plugins)
+- crash: post a crashlog .txt file that can be found in your aliucord/crashlogs folder
+- plugin not working: have you restarted the app? if yes, stand by until a supporter can assist you
+- userbg not working: make sure you have read the guide
+- userpfp not working: make sure you have read the guide
+- emojis don't save in status: known issue, no fix
+- aliucord thinks my text bar is a password bar: device or keyboard issue. no fix on our end
 
 "How to get modern UI/interface?"
-This is not really possible due to Aliucord using an old Discord version. However, you can install "DiscordRN Dark" theme from #themes channel or use Kettu/Rain clients.
+This is not really possible due to Aliucord using an old Discord version, however, you can install "DiscordRN Dark" theme from #themes channel or use Kettu/Rain clients.
 
 "How to install Aliucord/plugins/themes?"
 <https://yutaplug.github.io/Aliucord/#beginner-guide>
@@ -65,7 +53,7 @@ Real nitro is not possible, but you can get plugins that mimic a few nitro featu
 <https://yutaplug.github.io/Aliucord/#changelog>
 
 "Is there a plugin to bypass file size?"
-Best you can do is uploading the file to <https://catbox.moe> or a similar service.
+No, best you can do is uploading the file to <https://catbox.moe> or a similar service.
 
 "How to fix message links opening in Discord?"
 Install https://github.com/yutaplug/Aliucord/raw/builds/OpenLinksInApp.zip plugin
@@ -102,9 +90,6 @@ Install ComponentsV2 plugin.
 
 "Where is ShowHiddenChannels?"
 The plugin needed to be gone for private reasons, thanks for your understanding.
-
-"How to play audio files"
-Install https://github.com/yutaplug/Aliucord/raw/builds/AudioPlayer.zip
 ---`;
 
 async function callGeminiAPI(prompt, userId, history, systemPrompt) {
@@ -142,19 +127,55 @@ async function callGeminiAPI(prompt, userId, history, systemPrompt) {
   return content;
 }
 
+
+// Helper: get helper channels for a guild (returns a Set)
+function getHelperChannels(guildId) {
+  return HELPER_CHANNELS.get(guildId) || new Set();
+}
+
+// Helper: add a helper channel for a guild
+function addHelperChannel(guildId, channelId) {
+  let set = HELPER_CHANNELS.get(guildId);
+  if (!set) {
+    set = new Set();
+    HELPER_CHANNELS.set(guildId, set);
+  }
+  set.add(channelId);
+}
+
+// Helper: remove a helper channel for a guild
+function removeHelperChannel(guildId, channelId) {
+  const set = HELPER_CHANNELS.get(guildId);
+  if (set) {
+    set.delete(channelId);
+    if (set.size === 0) HELPER_CHANNELS.delete(guildId);
+  }
+}
+
 module.exports = {
   name: 'aihelper',
   description: 'Helper AI for Aliucord',
   data,
-  getHelperChannelId: () => HELPER_CHANNEL_ID,
+  getHelperChannels,
+  addHelperChannel,
+  removeHelperChannel,
   async executePrefix(message, args) {
-    // Set helper channel: !aihelper set <channelId>
-    if (args[0] === 'set' && (message.member.permissions.has('Administrator') || message.member.roles.cache.has('811256488676425758'))) {
+    const guildId = message.guild?.id;
+    // Set helper channel: !aihelper add <channelId>
+    if (args[0] === 'add' && (message.member.permissions.has('Administrator') || message.member.roles.cache.has('811256488676425758'))) {
       if (!args[1]) return message.reply('Provide a channel ID.');
-      HELPER_CHANNEL_ID = args[1];
-      return message.reply('Helper AI channel set.');
+      addHelperChannel(guildId, args[1]);
+      return message.reply('Helper AI channel added.');
     }
-    if (!HELPER_CHANNEL_ID || message.channel.id !== HELPER_CHANNEL_ID) return;
+    // Remove helper channel: !aihelper remove <channelId>
+    if (args[0] === 'remove' && (message.member.permissions.has('Administrator') || message.member.roles.cache.has('811256488676425758'))) {
+      if (!args[1]) return message.reply('Provide a channel ID.');
+      removeHelperChannel(guildId, args[1]);
+      return message.reply('Helper AI channel removed.');
+    }
+    // Only respond if this channel is a helper channel
+    const channels = getHelperChannels(guildId);
+    if (!channels.has(message.channel.id)) return;
     // If called from messageCreate.js with no args, use message.content
     const prompt = args.length ? args.join(' ') : message.content;
     if (!prompt) return;
@@ -171,6 +192,7 @@ module.exports = {
     }
   },
   async execute(interaction) {
+    const guildId = interaction.guild?.id;
     if (interaction.options.getSubcommand(false) === 'set') {
       // Allow users with the specific role OR administrators to use set
       const member = interaction.member;
@@ -178,8 +200,8 @@ module.exports = {
       const isAdmin = member && member.permissions && (member.permissions.has ? member.permissions.has('Administrator') : false);
       if (!(hasHelperRole || isAdmin)) return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
       const channel = interaction.options.getChannel('channel');
-      HELPER_CHANNEL_ID = channel.id;
-      return interaction.reply({ content: `Helper AI channel set to <#${channel.id}>.`, ephemeral: true });
+      addHelperChannel(guildId, channel.id);
+      return interaction.reply({ content: `Helper AI channel <#${channel.id}> added.`, ephemeral: true });
     }
     // Default: respond to questions in the helper channel (not used, but required for slash command compatibility)
     return;
