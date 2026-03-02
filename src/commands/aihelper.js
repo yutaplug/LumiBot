@@ -49,25 +49,25 @@ Known issue, no fix.
 "Aliucord thinks my text bar is a password bar"
 Device or keyboard issue. no fix on our end.
 
-"How to get modern UI/interface?"
+"How to get modern UI/interface"
 This is not really possible due to Aliucord using an old Discord version. However, you can install "DiscordRN Dark" theme from #themes channel or use Kettu/Rain clients.
 
-"How to install Aliucord/plugins/themes?"
+"How to install Aliucord/plugins/themes"
 <https://yutaplug.github.io/Aliucord/#beginner-guide>
 
-"Is there x plugin?"
+"Is there x plugin"
 Search for it using the !plugins command in #bot-spam, PluginWeb plugin or using the built-in Discord searchbar. If you can't find it, stand by until a supporter can assist you.
 
-"Can I get nitro?"
+"Can I get nitro"
 Real nitro is not possible, but you can get plugins that mimic a few nitro features (use the !fakenitro command).
 
-"Where can I find the changelog?"
+"Where can I find the changelog"
 <https://yutaplug.github.io/Aliucord/#changelog>
 
-"Is there a plugin to bypass file size?"
+"Is there a plugin to bypass file size"
 Best you can do is uploading the file to <https://catbox.moe> or a similar service.
 
-"How to fix message links opening in Discord?"
+"How to fix message links opening in Discord"
 Install https://github.com/yutaplug/Aliucord/raw/builds/OpenLinksInApp.zip plugin
 
 "I can't login because of 2FA"
@@ -79,32 +79,35 @@ Make sure the token is still valid and that it doesn't contain any white spaces.
 "PlayableEmbeds not working"
 Install https://github.com/yutaplug/Aliucord/raw/builds/Fluff.zip instead.
 
-"Why does Aliucord use an old Discord version?"
+"Why does Aliucord use an old Discord version"
 <https://yutaplug.github.io/Aliucord/#old-version>
 
 "Theme is not working"
 Read #theme-support pins for fixed versions of old themes and make sure you are using the right transparency.
 
-"How to add a custom font or background?"
+"How to add a custom font or background"
 <https://yutaplug.github.io/Aliucord/#themer>
 
-"Will using Aliucord get me banned?"
+"Will using Aliucord get me banned/Is Aliucord safe"
 Client modifications are against Discord's Terms of Service. However, Discord is pretty indifferent about them and there are no known cases of users getting banned for using client mods. So you should generally be fine as long as you don't use plugins that bypass api restrictions or implement spammy / selfbot behaviour (mass deleting, spam plugins, "animated" custom status, etc).
 
 "I have issues with the manager (I can't install Aliucord)"
 Read #common-issues channel or stand by until a supporter can assist you.
 
-"How to use bot commands?"
+"How to use bot commands"
 Install SlashCommandsFix plugin.
 
 "I can't view bot messages"
 Install ComponentsV2 plugin.
 
-"Where is ShowHiddenChannels?"
+"Where is ShowHiddenChannels"
 The plugin needed to be gone for private reasons, thanks for your understanding.
 
 "How to play audio files"
 Install https://github.com/yutaplug/Aliucord/raw/builds/AudioPlayer.zip
+
+"Recommend plugins please"
+Plugins are subjective.
 ---`;
 
 async function callGeminiAPI(prompt, userId, history, systemPrompt) {
